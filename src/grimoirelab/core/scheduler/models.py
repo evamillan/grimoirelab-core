@@ -25,7 +25,11 @@ from django.db.models import (CharField,
                               JSONField,
                               IntegerChoices,
                               Model,
-                              PositiveIntegerField, IntegerField)
+                              PositiveIntegerField,
+                              IntegerField,
+                              ForeignKey,
+                              CASCADE)
+from django.utils.translation import gettext_lazy as _
 
 from grimoirelab_toolkit.datetime import datetime_utcnow
 
@@ -92,12 +96,12 @@ class FetchTask(Task):
         Recurring tasks, that were successful, will be re-scheduled
         again (`ENQUEUED`), stating a new cycle.
         """
-        NEW = 1
-        ENQUEUED = 2
-        RUNNING = 3
-        COMPLETED = 4
-        FAILED = 5
-        RECOVERY = 6
+        NEW = 1, _("new")
+        ENQUEUED = 2, _("enqueued")
+        RUNNING = 3, _("running")
+        COMPLETED = 4, _("completed")
+        FAILED = 5, _("failed")
+        RECOVERY = 6, _("recovery")
 
     backend = CharField(max_length=MAX_SIZE_CHAR_FIELD)
     category = CharField(max_length=MAX_SIZE_CHAR_FIELD)
@@ -120,3 +124,8 @@ class FetchTask(Task):
 
     class Meta:
         db_table = 'fetch_tasks'
+
+
+class Jobs(EntityBase):
+    job_id = CharField(max_length=MAX_SIZE_CHAR_FIELD)
+    task = ForeignKey(FetchTask, on_delete=CASCADE, related_name='jobs')

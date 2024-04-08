@@ -241,3 +241,10 @@ RQ_QUEUES = {
 RQ = {
     'JOB_CLASS': 'grimoirelab.core.scheduler.jobs.PercevalJob'
 }
+
+
+#
+# Configuration for backends
+#
+
+GIT_PATH = '~/.perceval'

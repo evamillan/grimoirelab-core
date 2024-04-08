@@ -26,6 +26,10 @@ from typing import Any
 
 import logging
 
+import django_rq
+from rq import cancel_job
+
+from .errors import NotFoundError
 from .jobs import PercevalJob
 from .models import FetchTask
 from .common import (
@@ -59,3 +63,38 @@ def schedule_task(
     PercevalJob.enqueue_job(task=task)
 
     return task
+
+
+def remove_task(task_id: str):
+    """Remove a task and cancel the associated job"""
+
+    try:
+        task = FetchTask.objects.get(id=task_id)
+    except FetchTask.DoesNotExist:
+        raise NotFoundError(element=task_id)
+
+    connection = django_rq.get_connection()
+    cancel_job(task.job_id, connection=connection)
+
+    task.delete()
+
+
+def reschedule_task(task_id: str):
+    """Reschedule a task when it failed"""
+
+    try:
+        task = FetchTask.objects.get(id=task_id)
+    except FetchTask.DoesNotExist:
+        raise NotFoundError(element=task_id)
+
+    if task.status == FetchTask.Status.FAILED:
+        task.age = 0
+        task.executions = 0
+        task.num_failures = 0
+        task.save()
+
+        PercevalJob.enqueue_job(task=task)
+
+        return True
+
+    return False
