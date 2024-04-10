@@ -101,14 +101,23 @@ class JobResult:
         if self.summary:
             result['fetched'] = self.summary.fetched
             result['skipped'] = self.summary.skipped
-            result['min_updated_on'] = self.summary.min_updated_on.timestamp()
-            result['max_updated_on'] = self.summary.max_updated_on.timestamp()
-            result['last_updated_on'] = self.summary.last_updated_on.timestamp()
             result['last_uuid'] = self.summary.last_uuid
             result['min_offset'] = self.summary.min_offset
             result['max_offset'] = self.summary.max_offset
             result['last_offset'] = self.summary.last_offset
             result['extras'] = self.summary.extras
+            if self.summary.min_updated_on:
+                result['min_updated_on'] = self.summary.min_updated_on.timestamp()
+            else:
+                result['min_updated_on'] = None
+            if self.summary.max_updated_on:
+                result['max_updated_on'] = self.summary.max_updated_on.timestamp()
+            else:
+                result['max_updated_on'] = None
+            if self.summary.last_updated_on:
+                result['last_updated_on'] = self.summary.last_updated_on.timestamp()
+            else:
+                result['last_updated_on'] = None
 
         return result
 
@@ -164,6 +173,7 @@ class PercevalJob(Job):
         task.age += 1
         task.scheduled_datetime = scheduled_datetime
         task.job_id = job.id
+        task.jobs.create(job_id=job.id, task=task)
         task.save()
 
         logger.info(
@@ -285,7 +295,7 @@ class PercevalJob(Job):
             self._add_log_handler()
             return self.run(*self.args, **self.kwargs)
         finally:
-            self.meta['result'] = self.result
+            self.meta['result'] = self.perceval_result
             self.save_meta()
             self._remove_log_handler()
 

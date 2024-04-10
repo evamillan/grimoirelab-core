@@ -69,7 +69,7 @@ def remove_task(task_id: str):
     """Remove a task and cancel the associated job"""
 
     try:
-        task = FetchTask.objects.get(task_id)
+        task = FetchTask.objects.get(id=task_id)
     except FetchTask.DoesNotExist:
         raise NotFoundError(element=task_id)
 
@@ -83,7 +83,7 @@ def reschedule_task(task_id: str):
     """Reschedule a task when it failed"""
 
     try:
-        task = FetchTask.objects.get(task_id)
+        task = FetchTask.objects.get(id=task_id)
     except FetchTask.DoesNotExist:
         raise NotFoundError(element=task_id)
 

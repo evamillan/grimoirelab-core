@@ -22,18 +22,21 @@
 
 import json
 import pickle
+from json import JSONDecodeError
 
 import django_rq
 
 from django.conf import settings
 from django.core.paginator import Paginator
 from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
 from rq.exceptions import NoSuchJobError
 from rq.job import Job
 
 from .errors import NotFoundError
+from .jobs import JobResult
 from .models import FetchTask
 from .scheduler import (schedule_task,
                         remove_task,
@@ -60,7 +63,7 @@ def list_tasks(request):
             'age': task.age,
             'executions': task.executions,
             'num_failures': task.num_failures,
-            'job_id': task.job_id,
+            'jobs': [job.job_id for job in task.jobs.all()],
             'queue': task.queue,
             'scheduled_datetime': task.scheduled_datetime,
             'interval': task.interval,
@@ -81,8 +84,7 @@ def list_tasks(request):
 
 @require_http_methods(["GET"])
 def show_job(request, job_id):
-    queue = django_rq.get_queue(Q_DEFAULT_JOBS)
-    connection = queue.connection
+    connection = django_rq.get_connection()
 
     try:
         job = Job.fetch(job_id, connection=connection)
@@ -107,7 +109,8 @@ def show_job(request, job_id):
         response['log'] = job.meta['log']
 
     if 'result' in job.meta:
-        response['result'] = job.meta['result'].to_dict()
+        response['result'] = job.meta['result']
+    print(job.meta)
 
     return JsonResponse(response)
 
@@ -115,9 +118,34 @@ def show_job(request, job_id):
 @require_http_methods(["GET"])
 def show_task(request, task_id):
     try:
-        task = FetchTask.objects.get(task_id)
+        task = FetchTask.objects.get(id=task_id)
     except FetchTask.DoesNotExist:
         return JsonResponse({"error": "Task not found."}, status=404)
+
+    connection = django_rq.get_connection()
+    num_jobs = request.GET.get('num_jobs', 10)
+    jobs = []
+    for job in task.jobs.all()[:num_jobs]:
+        try:
+            job_rq = Job.fetch(job.job_id, connection=connection)
+        except NoSuchJobError:
+            # TODO: delete job from DB?
+            continue
+
+        job_result = None
+        if isinstance(job_rq.result, JobResult):
+            job_result = job_rq.result.to_dict()
+
+        logs = None
+        if 'log' in job_rq.meta:
+            logs = job_rq.meta['log']
+
+        jobs.append({
+            'job_id': job.job_id,
+            'job_status': job_rq.get_status(),
+            'result': job_result,
+            'logs': logs,
+        })
 
     response = {
         'id': task.id,
@@ -128,7 +156,7 @@ def show_task(request, task_id):
         'age': task.age,
         'executions': task.executions,
         'num_failures': task.num_failures,
-        'job_id': task.job_id,
+        'jobs': jobs,
         'queue': task.queue,
         'scheduled_datetime': task.scheduled_datetime,
         'interval': task.interval,
@@ -141,9 +169,32 @@ def show_task(request, task_id):
 
 
 @require_http_methods(["POST"])
+@csrf_exempt
 def add_task(request):
+    """Create a Task to fetch items
+
+    The body should contain a JSON similar to:
+    {
+        "taskData": {
+            "backend": "git",
+            "category": "commit",
+            "backendArgs": {
+                "uri": "https://github.com/chaoss/grimoirelab.git"
+            }
+        },
+        "schedulerArgs": {
+            "interval": 86400,
+            "max_retries": 3
+        }
+    }
+    """
     task_args = {}
-    task_data = json.loads(request.body)['taskData']
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Invalid JSON format."}, status=400)
+
+    task_data = data['taskData']
     task_args['backend'] = task_data['backend']
     task_args['category'] = task_data['category']
     task_args['backend_args'] = {}
@@ -153,10 +204,10 @@ def add_task(request):
         if 'fromDate' in task_data['backendArgs']:
             task_args['backend_args']['from_date'] = task_data['backendArgs']['fromDate']
 
-    if 'interval' in task_data['schedulerArgs']:
-        task_args['interval'] = int(task_data['schedulerArgs']['interval'])
-    if 'maxRetries' in task_data['schedulerArgs']:
-        task_args['max_retries'] = int(task_data['schedulerArgs']['maxRetries'])
+    if 'interval' in data['schedulerArgs']:
+        task_args['interval'] = int(data['schedulerArgs']['interval'])
+    if 'maxRetries' in data['schedulerArgs']:
+        task_args['max_retries'] = int(data['schedulerArgs']['maxRetries'])
 
     task = schedule_task(**task_args)
 
@@ -165,6 +216,7 @@ def add_task(request):
 
 
 @require_http_methods(["POST"])
+@csrf_exempt
 def delete_task(request):
     task_id = json.loads(request.body)['taskId']
 
@@ -178,6 +230,7 @@ def delete_task(request):
 
 
 @require_http_methods(["POST"])
+@csrf_exempt
 def reschedule_task(request):
     task_id = json.loads(request.body)['taskId']
 
@@ -193,68 +246,3 @@ def reschedule_task(request):
                             status=400)
     return JsonResponse({'status': 'ok',
                          'message': "Task rescheduled correctly"})
-
-
-def create_job(request):
-    backend = 'git'
-    category = 'commit'
-    backend_args = {
-        "gitpath": "/tmp/git/arthur.git/",
-        "uri": "https://github.com/chaoss/grimoirelab-kingarthur.git"
-    }
-
-    task = schedule_task(backend=backend,
-                         category=category,
-                         backend_args=backend_args)
-
-    return JsonResponse({'task': task.task_id})
-
-
-def list_jobs(request):
-    queue = django_rq.get_queue(Q_DEFAULT_JOBS)
-    connection = queue.connection
-
-    def job_info(jid):
-        job = Job.fetch(id=jid, connection=connection)
-        return job.exc_info
-
-    def job_sched_info(jid):
-        job = Job.fetch(id=jid, connection=connection)
-        return job.kwargs
-
-    def job_result(jid):
-        job = Job.fetch(id=jid, connection=connection)
-        data = job.to_dict()
-        data['data'] = pickle.loads(job.data)
-        data['result'] = job.result.to_dict()
-        data['meta'] = job.meta
-        return data
-
-    out = {
-        'started': {jid: job_info(jid) for jid in queue.started_job_registry.get_job_ids()},
-        'scheduled': {jid: job_sched_info(jid) for jid in queue.scheduled_job_registry.get_job_ids()},
-        'failed': {jid: job_info(jid) for jid in queue.failed_job_registry.get_job_ids()},
-        'deferred': {jid: job_info(jid) for jid in queue.deferred_job_registry.get_job_ids()},
-        'canceled': {jid: job_info(jid) for jid in queue.canceled_job_registry.get_job_ids()},
-        'finished': {jid: job_result(jid) for jid in queue.finished_job_registry.get_job_ids()},
-    }
-
-    return JsonResponse(out)
-
-
-def clear_jobs(request):
-    queue = django_rq.get_queue(Q_DEFAULT_JOBS)
-
-    registries = [
-        queue.failed_job_registry,
-        queue.finished_job_registry,
-        queue.scheduled_job_registry,
-        queue.started_job_registry,
-        queue.canceled_job_registry,
-        queue.deferred_job_registry
-    ]
-    for registry in registries:
-        for jid in registry.get_job_ids():
-            registry.remove(jid)
-
-    return JsonResponse({'removed': True})

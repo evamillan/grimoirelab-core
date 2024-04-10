@@ -74,10 +74,11 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    # 'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -115,7 +116,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'HOST': os.environ.get('GRIMOIRELAB_DB_HOST', '127.0.0.1'),
-        'PORT': os.environ.get('GRIMOIRELAB_DB_PORT', 3306),
+        'PORT': os.environ.get('GRIMOIRELAB_DB_PORT', 3307),
         'USER': os.environ.get('GRIMOIRELAB_DB_USER', 'root'),
         'PASSWORD': os.environ.get('GRIMOIRELAB_DB_PASSWORD', ''),
         'NAME': os.environ.get('GRIMOIRELAB_DB_DATABASE', 'grimoirelab_test'),
@@ -190,6 +191,16 @@ LOGGING = {
         'level': 'INFO',
     },
 }
+
+if 'GRIMOIRELAB_CORS_ALLOWED_ORIGINS' in os.environ:
+    CORS_ALLOWED_ORIGINS = os.environ['GRIMOIRELAB_CORS_ALLOWED_ORIGINS'].split(',')
+else:
+    CORS_ALLOWED_ORIGINS = [
+        'http://localhost:5173',
+    ]
+
+# CORS_ALLOW_CREDENTIALS = True
+# CORS_ALLOW_ALL_ORIGINS = True
 
 
 #
