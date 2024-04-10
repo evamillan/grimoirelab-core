@@ -5,7 +5,7 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      name: 'home',
+      name: 'home'
       // redirect: '/tasks'
     },
     {
@@ -13,7 +13,7 @@ const router = createRouter({
       name: 'tasks',
       meta: {
         breadcrumb: {
-          title: "Tasks",
+          title: 'Tasks',
           to: { name: 'tasks' }
         }
       },
@@ -24,7 +24,7 @@ const router = createRouter({
         {
           path: '',
           name: 'taskList',
-          component: () => import('../views/TaskList.vue')
+          component: () => import('../views/Task/ListView.vue')
         },
         {
           path: ':id',
@@ -32,18 +32,18 @@ const router = createRouter({
           meta: {
             breadcrumb: {
               title: 'Task',
-              param: 'id',
+              param: 'id'
             }
           },
           redirect: {
             name: 'taskJobs'
           },
-          component: () => import('../views/Task.vue'),
+          component: () => import('../views/Task/DetailView.vue'),
           children: [
             {
               name: 'taskJobs',
               path: '',
-              component: () => import('../views/TaskJobs.vue'),
+              component: () => import('../views/TaskJobs.vue')
             },
             {
               name: 'job',
@@ -54,19 +54,11 @@ const router = createRouter({
                   title: 'Job',
                   param: 'jobid'
                 }
-              },
+              }
             }
           ]
-        },
+        }
       ]
-    },
-    {
-      path: '/about',
-      name: 'about',
-      // route level code-splitting
-      // this generates a separate chunk (About.[hash].js) for this route
-      // which is lazy-loaded when the route is visited.
-      component: () => import('../views/AboutView.vue')
     }
   ]
 })

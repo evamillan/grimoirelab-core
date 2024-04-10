@@ -1,0 +1,156 @@
+<template>
+  <status-card class="pa-2 pb-4" :status="status">
+    <v-row>
+      <v-col cols="6">
+        <v-card-title>
+          {{ id }}
+        </v-card-title>
+        <v-card-subtitle class="pb-2">
+          <v-icon size="small" start>
+            {{ 'mdi-' + backend }}
+          </v-icon>
+          <span class="font-weight-medium">
+            {{ category }}
+          </span>
+          <span v-if="backendArgs?.uri"> from {{ backendArgs.uri }} </span>
+        </v-card-subtitle>
+        <v-card-subtitle v-if="lastExecution">
+          <v-icon
+            :aria-label="status"
+            :color="status"
+            role="img"
+            aria-hidden="false"
+            size="small"
+            start
+          >
+            {{ statusIcon }}
+          </v-icon>
+          Last run {{ lastRunDate }}
+        </v-card-subtitle>
+      </v-col>
+      <v-divider class="mt-2" vertical></v-divider>
+      <v-col cols="6" class="px-4 py-6 mt-2">
+        <p class="pb-2 text-body-2">
+          <v-icon color="medium-emphasis" size="small" start> mdi-calendar </v-icon>
+          Scheduled for
+          <span class="font-weight-medium">
+            {{ scheduledForDate }}
+          </span>
+        </p>
+        <p class="pb-2 text-body-2">
+          <v-icon color="medium-emphasis" size="small" start> mdi-timelapse </v-icon>
+          Every
+          <span class="font-weight-medium">
+            {{ formattedInterval }}
+          </span>
+        </p>
+        <p class="text-body-2">
+          <v-icon color="medium-emphasis" size="small" start> mdi-arrow-u-right-top </v-icon>
+          <span class="font-weight-medium">
+            {{ maxRetries }}
+          </span>
+          max retries
+        </p>
+      </v-col>
+    </v-row>
+  </status-card>
+</template>
+<script>
+import StatusCard from '@/components/StatusCard.vue'
+
+export default {
+  name: 'TaskCard',
+  components: { StatusCard },
+  props: {
+    age: {
+      type: [Number, String],
+      required: false,
+      default: 0
+    },
+    backend: {
+      type: String,
+      required: true
+    },
+    backendArgs: {
+      type: Object,
+      required: false,
+      default: () => {}
+    },
+    category: {
+      type: String,
+      required: true
+    },
+    status: {
+      type: String,
+      required: true
+    },
+    executions: {
+      type: [Number, String],
+      required: false,
+      default: 0
+    },
+    id: {
+      type: [Number, String],
+      required: true
+    },
+    interval: {
+      type: [Number, String],
+      required: true
+    },
+    scheduledDate: {
+      type: String,
+      required: false,
+      default: null
+    },
+    lastExecution: {
+      type: String,
+      required: false,
+      default: null
+    },
+    maxRetries: {
+      type: [Number, String],
+      required: true
+    }
+  },
+  computed: {
+    formattedInterval() {
+      switch (this.interval) {
+        case 86400:
+          return 'day'
+        case 604800:
+          return 'week'
+        default:
+          return `${this.interval} seconds`
+      }
+    },
+    statusIcon() {
+      switch (this.status) {
+        case 'finished':
+          return 'mdi-check'
+        case 'failed':
+          return 'mdi-close'
+        case 'running':
+          return 'mdi-sync'
+        default:
+          return 'mdi-calendar'
+      }
+    },
+    lastRunDate() {
+      if (this.lastExecution) {
+        const date = new Date(this.lastExecution)
+        return date.toLocaleString()
+      } else {
+        return '-'
+      }
+    },
+    scheduledForDate() {
+      if (this.scheduledDate) {
+        const date = new Date(this.scheduledDate)
+        return date.toLocaleString()
+      } else {
+        return '-'
+      }
+    }
+  }
+}
+</script>

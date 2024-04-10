@@ -1,29 +1,25 @@
 <script setup>
-import { RouterLink, RouterView } from 'vue-router'
-import Breadcrumbs from './components/Breadcrumbs.vue'
+import { RouterView } from 'vue-router'
+import BreadCrumbs from './components/BreadCrumbs.vue'
 </script>
 
 <template>
   <v-app>
     <v-app-bar color="primary" density="compact" flat>
-      <template v-slot:prepend>
-        <img src="./assets/favicon.png" height="30">
+      <template #prepend>
+        <img src="./assets/favicon.png" height="30" />
       </template>
     </v-app-bar>
-    <v-navigation-drawer
-      class="pa-2"
-      color="transparent"
-      permanent
-    >
+    <v-navigation-drawer class="pa-2" color="transparent" permanent>
       <v-list color="primary" density="compact">
         <v-list-item to="/">
-          <template v-slot:prepend>
+          <template #prepend>
             <v-icon>mdi-home-outline</v-icon>
           </template>
           <v-list-item-title>Home</v-list-item-title>
         </v-list-item>
-        <v-list-item :to="{name: 'taskList'}">
-          <template v-slot:prepend>
+        <v-list-item :to="{ name: 'taskList' }">
+          <template #prepend>
             <v-icon>mdi-calendar</v-icon>
           </template>
           <v-list-item-title>Tasks</v-list-item-title>
@@ -31,7 +27,7 @@ import Breadcrumbs from './components/Breadcrumbs.vue'
       </v-list>
     </v-navigation-drawer>
     <v-main>
-      <Breadcrumbs />
+      <BreadCrumbs />
       <RouterView />
     </v-main>
   </v-app>

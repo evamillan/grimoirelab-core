@@ -30,15 +30,15 @@ export default {
   data() {
     return {
       jobs: [
-          {
-            id: "1234567890",
-            status: "finished"
-          },
-          {
-            id: "0987654321",
-            status: "failed"
-          }
-        ]
+        {
+          id: '1234567890',
+          status: 'finished'
+        },
+        {
+          id: '0987654321',
+          status: 'failed'
+        }
+      ]
     }
   }
 }

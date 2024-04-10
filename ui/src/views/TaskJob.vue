@@ -2,7 +2,7 @@
   <div class="mt-4">
     <v-card :class="'border-' + status" class="pa-2" variant="outlined">
       <v-card-title class="text-subtitle-2 pb-0">
-          Job {{ $route.params.jobid }}
+        Job {{ $route.params.jobid }}
         <v-chip :color="status" class="ml-3" density="comfortable" size="small">
           {{ status }}
         </v-chip>
@@ -33,10 +33,10 @@
 export default {
   data() {
     return {
-      status: "finished",
+      status: 'finished',
       result: {
         fetched: 250,
-        skipped: 0,
+        skipped: 0
       },
       logs: [
         'commit 456a68ee1407a77f3e804a30dff245bb6c6b872f ce8e0b86a1e9877f42fe9453ede418519115f367',
@@ -49,7 +49,7 @@ export default {
         ' ',
         `    Merge branch 'lzp'`,
         '    Conflicts:',
-    	  '   	 aaa/otherthing',
+        '   	 aaa/otherthing',
         ' ',
         '1	0	aaa/otherthing.renamed',
         '::100644 100644 100644 e69de29... 58a6c75... 58a6c75... MR	aaa/otherthing.renamed'

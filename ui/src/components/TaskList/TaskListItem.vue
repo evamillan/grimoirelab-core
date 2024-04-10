@@ -1,36 +1,28 @@
 <template>
-  <v-card
-    :class="'border-' + status"
+  <status-card
+    :status="status"
     :to="{
       name: 'task',
       params: { id: id }
     }"
-    variant="outlined"
   >
     <v-row>
       <v-col cols="6">
         <v-card-title class="text-subtitle-2 pb-0 d-flex align-center">
           {{ id }}
-          <!-- <v-chip :color="status" class="ml-3" density="compact" size="small">
+          <v-chip :color="status.toLowerCase()" class="ml-3" density="compact" size="small">
             {{ status }}
-          </v-chip> -->
+          </v-chip>
           <div class="ml-auto">
-            <v-tooltip v-for="job in jobs" :text="job.status" location="bottom">
-              <template v-slot:activator="{ props }">
-                <v-icon v-bind="props" :color="job.status">
-                  mdi-square
-                </v-icon>
+            <v-tooltip v-for="job in jobs" :key="job.id" :text="job.status" location="bottom">
+              <template #activator="{ props }">
+                <v-icon v-bind="props" :color="job.status"> mdi-square </v-icon>
               </template>
             </v-tooltip>
           </div>
         </v-card-title>
         <v-card-subtitle class="font-weight-medium">
-          <v-icon
-            :aria-label="backend"
-            role="img"
-            aria-hidden="false"
-            size="small"
-          >
+          <v-icon :aria-label="backend" role="img" aria-hidden="false" size="small">
             {{ 'mdi-' + backend }}
           </v-icon>
           {{ category }}
@@ -39,19 +31,15 @@
       <v-divider vertical></v-divider>
       <v-col cols="5" class="px-4 py-6">
         <p class="pb-2 text-body-2">
-          <v-icon color="medium-emphasis" size="small" start>
-            mdi-format-list-numbered
-          </v-icon>
+          <v-icon color="medium-emphasis" size="small" start> mdi-format-list-numbered </v-icon>
           <span class="font-weight-medium">
             {{ executions }}
           </span>
           executions
         </p>
         <p class="text-body-2">
-          <v-icon color="medium-emphasis" size="small" start>
-            mdi-calendar
-          </v-icon>
-          {{ lastExecution }}
+          <v-icon color="medium-emphasis" size="small" start> mdi-calendar </v-icon>
+          {{ executionDate }}
         </p>
       </v-col>
       <v-col class="mx-4 py-6 d-flex flex-column align-end">
@@ -61,57 +49,77 @@
           variant="text"
           size="small"
           density="comfortable"
-          @click.stop.prevent
+          @click.stop.prevent="$emit('delete', id)"
         />
         <v-btn
           icon="mdi-refresh"
           variant="text"
           size="small"
           density="comfortable"
-          @click.stop.prevent
+          @click.stop.prevent="$emit('reschedule', id)"
         />
       </v-col>
     </v-row>
-  </v-card>
+  </status-card>
 </template>
 <script>
+import StatusCard from '@/components/StatusCard.vue'
+
 export default {
   name: 'TaskListItem',
+  components: { StatusCard },
+  emits: ['delete', 'reschedule'],
   props: {
     backend: {
       type: String,
+      required: true
     },
     category: {
       type: String,
+      required: true
     },
     status: {
       type: String,
+      required: true
     },
     executions: {
-      type: [Number, String]
+      type: [Number, String],
+      required: false,
+      default: 0
     },
     id: {
-      type: String,
+      type: [Number, String],
+      required: true
     },
     scheduledDate: {
       type: String,
+      required: false,
+      default: null
     },
     lastExecution: {
       type: String,
+      required: false,
+      default: null
     },
     jobs: {
-      type: Array
+      type: Array,
+      required: false,
+      default: () => []
     }
   },
-};
+  computed: {
+    executionDate() {
+      if (this.lastExecution) {
+        const lastExecutionDate = new Date(this.lastExecution)
+        return lastExecutionDate.toLocaleString()
+      } else {
+        return ''
+      }
+    }
+  }
+}
 </script>
 <style lang="scss" scoped>
-.v-card--variant-outlined {
-  background: rgb(var(--v-theme-surface));
-  border: thin solid rgba(0, 0, 0, 0.08);
-  border-left: 6px solid rgb(var(--v-border-color));
-}
-
 .v-chip.v-chip--density-compact {
   height: calc(var(--v-chip-height) + -6px);
 }
