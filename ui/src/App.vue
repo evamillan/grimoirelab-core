@@ -12,12 +12,6 @@ import BreadCrumbs from './components/BreadCrumbs.vue'
     </v-app-bar>
     <v-navigation-drawer class="pa-2" color="transparent" permanent>
       <v-list color="primary" density="compact">
-        <v-list-item to="/">
-          <template #prepend>
-            <v-icon>mdi-home-outline</v-icon>
-          </template>
-          <v-list-item-title>Home</v-list-item-title>
-        </v-list-item>
         <v-list-item :to="{ name: 'taskList' }">
           <template #prepend>
             <v-icon>mdi-calendar</v-icon>

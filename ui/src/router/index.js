@@ -5,11 +5,11 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      name: 'home'
-      // redirect: '/tasks'
+      name: 'home',
+      redirect: '/datajobs'
     },
     {
-      path: '/tasks',
+      path: '/datajobs',
       name: 'tasks',
       meta: {
         breadcrumb: {
@@ -43,12 +43,12 @@ const router = createRouter({
             {
               name: 'taskJobs',
               path: '',
-              component: () => import('../views/TaskJobs.vue')
+              component: () => import('../views/Job/ListView.vue')
             },
             {
               name: 'job',
               path: 'job/:jobid',
-              component: () => import('../views/TaskJob.vue'),
+              component: () => import('../views/Job/DetailView.vue'),
               meta: {
                 breadcrumb: {
                   title: 'Job',

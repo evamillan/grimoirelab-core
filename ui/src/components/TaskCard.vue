@@ -2,9 +2,7 @@
   <status-card class="pa-2 pb-4" :status="status">
     <v-row>
       <v-col cols="6">
-        <v-card-title>
-          {{ id }}
-        </v-card-title>
+        <v-card-title> Task {{ id }} </v-card-title>
         <v-card-subtitle class="pb-2">
           <v-icon size="small" start>
             {{ 'mdi-' + backend }}

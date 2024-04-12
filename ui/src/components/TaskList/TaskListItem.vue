@@ -14,9 +14,14 @@
             {{ status }}
           </v-chip>
           <div class="ml-auto">
-            <v-tooltip v-for="job in jobs" :key="job.id" :text="job.status" location="bottom">
+            <v-tooltip
+              v-for="job in jobs"
+              :key="job.job_id"
+              :text="job.job_status"
+              location="bottom"
+            >
               <template #activator="{ props }">
-                <v-icon v-bind="props" :color="job.status"> mdi-square </v-icon>
+                <v-icon v-bind="props" :color="job.job_status"> mdi-square </v-icon>
               </template>
             </v-tooltip>
           </div>
@@ -29,7 +34,7 @@
         </v-card-subtitle>
       </v-col>
       <v-divider vertical></v-divider>
-      <v-col cols="5" class="px-4 py-6">
+      <v-col cols="4" class="px-4 py-6">
         <p class="pb-2 text-body-2">
           <v-icon color="medium-emphasis" size="small" start> mdi-format-list-numbered </v-icon>
           <span class="font-weight-medium">

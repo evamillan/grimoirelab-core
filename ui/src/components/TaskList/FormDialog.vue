@@ -12,11 +12,11 @@
     </template>
 
     <v-card title="Schedule task">
-      <v-card-text>
+      <v-card-text class="mt-4">
         <v-row dense>
           <v-col cols="6">
             <v-select
-              v-model="formData.backend"
+              v-model="formData.taskData.backend"
               :items="['git']"
               color="primary"
               label="Backend"
@@ -26,7 +26,7 @@
           </v-col>
           <v-col cols="6">
             <v-select
-              v-model="formData.category"
+              v-model="formData.taskData.category"
               :items="['commit']"
               color="primary"
               label="Category"
@@ -38,20 +38,9 @@
         <v-row>
           <v-col cols="12">
             <v-text-field
-              v-model="formData.backendArgs.uri"
+              v-model="formData.taskData.backendArgs.uri"
               color="primary"
               label="URI"
-              hide-details
-              required
-            />
-          </v-col>
-        </v-row>
-        <v-row>
-          <v-col cols="12">
-            <v-text-field
-              v-model="formData.backendArgs.gitpath"
-              color="primary"
-              label="Path"
               hide-details
               required
             />
@@ -69,12 +58,23 @@
               </template>
               <v-radio :value="86400" label="Every day"></v-radio>
               <v-radio :value="604800" label="Every week"></v-radio>
+              <v-radio value="custom" label="Custom"></v-radio>
             </v-radio-group>
+            <v-text-field
+              v-model="customInterval"
+              class="ml-8"
+              label="Every"
+              type="number"
+              suffix="seconds"
+              hide-details
+              required
+            >
+            </v-text-field>
           </v-col>
         </v-row>
       </v-card-text>
 
-      <v-card-actions>
+      <v-card-actions class="pt-0 pb-4 pr-4">
         <v-spacer></v-spacer>
         <v-btn text="Cancel" variant="plain" @click="isOpen = false"></v-btn>
         <v-btn color="primary" text="Save" variant="flat" @click="onSave"></v-btn>
@@ -90,21 +90,26 @@ export default {
     return {
       isOpen: false,
       formData: {
-        backend: 'git',
-        category: 'commit',
-        backendArgs: {
-          uri: '',
-          gitpath: ''
+        taskData: {
+          backend: 'git',
+          category: 'commit',
+          backendArgs: {
+            uri: ''
+          }
         },
         schedulerArgs: {
           interval: 604800,
           max_retries: 1
         }
-      }
+      },
+      customInterval: ''
     }
   },
   methods: {
     onSave() {
+      if (this.formData.schedulerArgs.interval === 'custom') {
+        this.formData.schedulerArgs.interval = this.customInterval
+      }
       this.$emit('create', this.formData)
       this.isOpen = false
     }

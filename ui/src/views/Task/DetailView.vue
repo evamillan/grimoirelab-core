@@ -15,7 +15,7 @@
       :scheduled-date="task.scheduled_datetime"
       class="mt-4"
     />
-    <router-view></router-view>
+    <router-view :task="task"></router-view>
   </v-container>
 </template>
 <script>

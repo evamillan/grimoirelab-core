@@ -1,5 +1,9 @@
 <template>
-  <v-breadcrumbs :items="breadcrumbs"></v-breadcrumbs>
+  <v-breadcrumbs
+    :items="breadcrumbs"
+    class="text-body-2 text-medium-emphasis"
+    active-class="font-weight-medium text-high-emphasis"
+  />
 </template>
 <script>
 export default {
@@ -12,7 +16,8 @@ export default {
           return {
             title: this.getTitle(route),
             to: route.meta.breadcrumb.to || { name: route.name },
-            exact: true
+            exact: true,
+            disabled: false
           }
         })
     }
@@ -31,5 +36,10 @@ export default {
 <style lang="scss" scoped>
 .v-breadcrumbs {
   height: 68px;
+
+  :deep(.v-breadcrumbs-item):last-of-type {
+    font-weight: 500;
+    color: rgba(var(--v-theme-on-background), var(--v-high-emphasis-opacity));
+  }
 }
 </style>

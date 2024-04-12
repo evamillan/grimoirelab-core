@@ -5,13 +5,22 @@
       :count="count"
       :pages="pages"
       @create="createTask($event)"
-      @delete="deleteTask($event)"
+      @delete="confirmDeleteTask($event)"
       @reschedule="rescheduleTask($event)"
       @update:page="fetchTasks($event)"
     />
     <v-snackbar v-model="snackbar.open" :color="snackbar.color">
       {{ snackbar.text }}
     </v-snackbar>
+    <v-dialog v-model="dialog.open" width="auto">
+      <v-card class="pa-1" width="400" :title="dialog.text">
+        <template #actions>
+          <v-spacer />
+          <v-btn color="primary" text="Cancel" variant="plain" @click="dialog.open = false"></v-btn>
+          <v-btn color="primary" text="confirm" variant="flat" @click="dialog.action"></v-btn>
+        </template>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 <script>
@@ -30,6 +39,10 @@ export default {
         open: false,
         color: 'success',
         text: ''
+      },
+      dialog: {
+        open: false,
+        action: null
       }
     }
   },
@@ -54,6 +67,13 @@ export default {
         })
       }
     },
+    confirmDeleteTask(taskId) {
+      Object.assign(this.dialog, {
+        open: true,
+        text: `Delete task ${taskId}?`,
+        action: () => this.deleteTask(taskId)
+      })
+    },
     async deleteTask(taskId) {
       try {
         await API.scheduler.delete(taskId)
@@ -70,6 +90,7 @@ export default {
           text: error.response?.data?.message || error
         })
       }
+      this.dialog = false
     },
     async fetchTasks(page = 1) {
       try {
